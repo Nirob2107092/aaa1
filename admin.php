@@ -1079,7 +1079,7 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
         <!-- Admin Profile Section -->
         <div style="text-align:center; margin-bottom:2rem;">
             <i class="fa fa-user admin-icon"></i>
-            <div style="font-weight:bold; font-size:1.2rem;">Martyn Vorm</div>
+            <div style="font-weight:bold; font-size:1.2rem;">Rysul Aman Nirob</div>
             <div style="font-size:0.95rem; color:#e0f7fa;">Admin Panel</div>
         </div>
         <a href="javascript:void(0)" id="link-home" onclick="showSection('home')">Home</a>

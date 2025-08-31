@@ -183,20 +183,33 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
             <h2 class="section-title center">Projects</h2>
             <div class="portfolio-grid">
                 <?php foreach ($projects as $project): ?>
-                    <div class="portfolio-item" onclick="openProjectModal(<?php echo $project['id']; ?>)">
-                        <div class="portfolio-image">
-                            <?php if (!empty($project['image'])): ?>
-                                <img src="<?php echo $project['image']; ?>" alt="<?php echo htmlspecialchars($project['title']); ?>" style="width:100%; height:240px; object-fit:cover;">
-                            <?php else: ?>
-                                <div class="portfolio-placeholder">
-                                    <i class="fa fa-image" style="font-size:2rem; margin-bottom:1rem;"></i>
-                                    Project Image
+                    <div class="portfolio-item" data-category="web" onclick="openProjectModal(<?php echo $project['id']; ?>)">
+                        <div class="portfolio-img">
+                            <img src="<?php echo !empty($project['image']) ? $project['image'] : 'images/default-project.jpg'; ?>" alt="<?php echo htmlspecialchars($project['title']); ?>">
+                            <div class="portfolio-overlay">
+                                <div class="portfolio-info">
+                                    <h3><?php echo htmlspecialchars($project['title']); ?></h3>
+                                    <p><?php echo htmlspecialchars($project['short_description']); ?></p>
+                                    <div style="margin-top: 1rem;">
+                                        <span style="background: rgba(255,255,255,0.2); padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem;">
+                                            <?php echo htmlspecialchars($project['category'] ?? 'Project'); ?>
+                                        </span>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
+
+                        <!-- Project Content Area (visible without hover) -->
                         <div class="portfolio-content">
-                            <h3><?php echo htmlspecialchars($project['title']); ?></h3>
-                            <p><?php echo htmlspecialchars(substr($project['short_description'], 0, 100)); ?></p>
+                            <div>
+                                <h3 class="portfolio-title"><?php echo htmlspecialchars($project['title']); ?></h3>
+                                <p class="portfolio-description"><?php echo htmlspecialchars($project['short_description']); ?></p>
+                            </div>
+                            <div style="margin-top: auto;">
+                                <span style="color: #00D4AA; font-size: 0.8rem; font-weight: 500;">
+                                    <?php echo htmlspecialchars($project['category'] ?? 'Web Development'); ?>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -205,12 +218,155 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
     </section>
 
     <!-- Project Modal -->
-    <div id="project-modal" class="project-modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeProjectModal()">&times;</span>
-            <div id="modal-project-content"></div>
+    <div id="project-modal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+">
+        <div style="
+        position: relative;
+        background: #fff;
+        margin: 50px auto;
+        padding: 2rem;
+        border-radius: 15px;
+        max-width: 700px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: modalSlideIn 0.3s ease-out;
+    ">
+            <!-- Close Button -->
+            <button onclick="closeProjectModal()" style="
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+            z-index: 1;
+        ">&times;</button>
+
+            <!-- Project Image -->
+            <img id="modal-project-image" style="
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        " alt="Project Image">
+
+            <!-- Project Title -->
+            <h2 id="modal-project-title" style="
+            color: #008080;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        "></h2>
+
+            <!-- Project Category -->
+            <div style="margin-bottom: 1rem;">
+                <strong style="color: #00D4AA;">Category:</strong>
+                <span id="modal-project-category"></span>
+            </div>
+
+            <!-- Technologies -->
+            <div style="margin-bottom: 1rem;">
+                <strong style="color: #00D4AA;">Technologies:</strong>
+                <span id="modal-project-technologies"></span>
+            </div>
+
+            <!-- Description -->
+            <div style="margin-bottom: 1.5rem;">
+                <strong style="color: #00D4AA;">Description:</strong>
+                <p id="modal-project-description" style="
+                line-height: 1.6;
+                color: #666;
+                margin-top: 0.5rem;
+            "></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="text-align: center;">
+                <a id="modal-github-link" href="#" target="_blank" style="
+                display: inline-block;
+                background: #008080;
+                color: white;
+                padding: 12px 25px;
+                text-decoration: none;
+                border-radius: 25px;
+                margin: 0 10px;
+                transition: all 0.3s ease;
+            ">
+                    <i class="fab fa-github"></i> View Code
+                </a>
+                <a id="modal-demo-link" href="#" target="_blank" style="
+                display: inline-block;
+                background: #00D4AA;
+                color: white;
+                padding: 12px 25px;
+                text-decoration: none;
+                border-radius: 25px;
+                margin: 0 10px;
+                transition: all 0.3s ease;
+            ">
+                    <i class="fas fa-external-link-alt"></i> Live Demo
+                </a>
+            </div>
         </div>
     </div>
+
+    <style>
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Hover effects for modal buttons */
+        #modal-github-link:hover {
+            background: #006666 !important;
+            transform: translateY(-2px);
+        }
+
+        #modal-demo-link:hover {
+            background: #00B894 !important;
+            transform: translateY(-2px);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            #project-modal>div {
+                margin: 20px auto;
+                padding: 1.5rem;
+            }
+
+            #modal-project-title {
+                font-size: 1.5rem !important;
+            }
+
+            #modal-github-link,
+            #modal-demo-link {
+                display: block !important;
+                margin: 10px 0 !important;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
 
     <!-- Work Experience Section -->
     <section class="experience">
@@ -303,6 +459,73 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
     </footer>
 
     <script src="js/script.js"></script>
+    <script>
+        // Project Modal Functions
+        function openProjectModal(projectId) {
+            fetch(`get_project.php?id=${projectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+
+                    // Populate modal with project data
+                    document.getElementById('modal-project-title').textContent = data.title;
+                    document.getElementById('modal-project-category').textContent = data.category || 'N/A';
+                    document.getElementById('modal-project-technologies').textContent = data.technologies || 'N/A';
+                    document.getElementById('modal-project-description').textContent = data.detailed_description || data.short_description;
+
+                    // Handle project image
+                    const projectImage = document.getElementById('modal-project-image');
+                    if (data.image) {
+                        projectImage.src = data.image;
+                        projectImage.style.display = 'block';
+                    } else {
+                        projectImage.style.display = 'none';
+                    }
+
+                    // Handle links
+                    const githubLink = document.getElementById('modal-github-link');
+                    const demoLink = document.getElementById('modal-demo-link');
+
+                    if (data.github_link) {
+                        githubLink.href = data.github_link;
+                        githubLink.style.display = 'inline-block';
+                    } else {
+                        githubLink.style.display = 'none';
+                    }
+
+                    if (data.demo_link) {
+                        demoLink.href = data.demo_link;
+                        demoLink.style.display = 'inline-block';
+                    } else {
+                        demoLink.style.display = 'none';
+                    }
+
+                    // Show modal
+                    document.getElementById('project-modal').style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading project details');
+                });
+        }
+
+        function closeProjectModal() {
+            document.getElementById('project-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('project-modal');
+            if (event.target === modal) {
+                closeProjectModal();
+            }
+        });
+    </script>
 </body>
 
 </html>
