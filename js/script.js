@@ -430,3 +430,95 @@ function editLocation(id) {
 function closeEditLocationModal() {
     document.getElementById('edit-location-modal').style.display = 'none';
 }
+
+// Project Modal Functions
+function openProjectModal(projectId) {
+    fetch('admin.php?action=get_project&id=' + projectId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error loading project details');
+                return;
+            }
+            const technologies = data.technologies ? data.technologies.split(',').map(tech => tech.trim()) : [];
+            const techTags = technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('');
+            document.getElementById('modal-project-content').innerHTML = `
+                <div class="modal-header">
+                    ${data.image ? `<img src="${data.image}" alt="${data.title}">` : `<div style="background:#00D4AA; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem;"><i class="fa fa-image"></i></div>`}
+                    <div class="modal-header-overlay">
+                        <h2>${data.title}</h2>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <h3><i class="fa fa-info-circle"></i> Project Overview</h3>
+                        <p>${data.detailed_description || data.short_description}</p>
+                    </div>
+                    ${technologies.length > 0 ? `
+                    <div class="modal-section">
+                        <h3><i class="fa fa-code"></i> Technologies Used</h3>
+                        <div class="technologies-list">
+                            ${techTags}
+                        </div>
+                    </div>
+                    ` : ''}
+                    <div class="modal-links">
+                        ${data.github_link ? `<a href="${data.github_link}" target="_blank" class="modal-btn btn-github"><i class="fa fa-github"></i> View Code</a>` : ''}
+                        ${data.demo_link ? `<a href="${data.demo_link}" target="_blank" class="modal-btn btn-demo"><i class="fa fa-external-link"></i> Live Demo</a>` : ''}
+                    </div>
+                </div>
+            `;
+            document.getElementById('project-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading project details');
+        });
+}
+
+function closeProjectModal() {
+    document.getElementById('project-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('project-modal');
+    if (event.target === modal) {
+        closeProjectModal();
+    }
+}
+
+// Portfolio Filter Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+            
+            const filter = btn.getAttribute('data-filter');
+            
+            portfolioItems.forEach(item => {
+                if (filter === 'all' || item.getAttribute('data-category') === filter) {
+                    item.style.display = 'block';
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'scale(1)';
+                    }, 10);
+                } else {
+                    item.style.opacity = '0';
+                    item.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        item.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    });
+});

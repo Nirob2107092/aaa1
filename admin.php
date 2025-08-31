@@ -69,6 +69,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_experience' && isset($_GE
     }
 }
 
+// Handle AJAX requests for project data
+if (isset($_GET['action']) && $_GET['action'] === 'get_project' && isset($_GET['id'])) {
+    $id = intval($_GET['id']);
+    $result = $conn->query("SELECT * FROM projects WHERE id=$id");
+    if ($result && $row = $result->fetch_assoc()) {
+        header('Content-Type: application/json');
+        echo json_encode($row);
+        exit;
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Project not found']);
+        exit;
+    }
+}
+
 $home_updated = isset($_GET['success']) && $_GET['success'] === 'home';
 $about_updated = isset($_GET['success']) && $_GET['success'] === 'about';
 $education_added = isset($_GET['success']) && $_GET['success'] === 'education_added';
@@ -163,18 +178,60 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
     // Add Project
-    if (isset($_POST['add_project']) && !empty($_POST['project_name'])) {
-        $name = sanitize($_POST['project_name']);
-        $desc = sanitize($_POST['project_desc']);
-        $conn->query("INSERT INTO projects (name, description) VALUES ('$name', '$desc')");
-        header("Location: admin.php");
+    if (isset($_POST['add_project']) && !empty($_POST['project_title'])) {
+        $title = sanitize($_POST['project_title']);
+        $short_desc = sanitize($_POST['project_short_desc']);
+        $detailed_desc = sanitize($_POST['project_detailed_desc']);
+        $technologies = sanitize($_POST['project_technologies']);
+        $github = sanitize($_POST['project_github']);
+        $demo = sanitize($_POST['project_demo']);
+        $category = sanitize($_POST['project_category']);
+
+        $imagePath = '';
+        if (!empty($_FILES['project_image']['name'])) {
+            $uploadDir = 'uploads/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $imagePath = $uploadDir . basename($_FILES['project_image']['name']);
+            move_uploaded_file($_FILES['project_image']['tmp_name'], $imagePath);
+        }
+
+        $sql = "INSERT INTO projects (title, short_description, detailed_description, technologies, github_link, demo_link, category" . ($imagePath ? ", image" : "") . ") VALUES ('$title', '$short_desc', '$detailed_desc', '$technologies', '$github', '$demo', '$category'" . ($imagePath ? ", '$imagePath'" : "") . ")";
+        $conn->query($sql);
+        header("Location: admin.php?success=project_added#projects");
+        exit;
+    }
+    // Update Project
+    if (isset($_POST['update_project']) && !empty($_POST['edit_project_title'])) {
+        $id = intval($_POST['edit_project_id']);
+        $title = sanitize($_POST['edit_project_title']);
+        $short_desc = sanitize($_POST['edit_project_short_desc']);
+        $detailed_desc = sanitize($_POST['edit_project_detailed_desc']);
+        $technologies = sanitize($_POST['edit_project_technologies']);
+        $github = sanitize($_POST['edit_project_github']);
+        $demo = sanitize($_POST['edit_project_demo']);
+        $category = sanitize($_POST['edit_project_category']);
+
+        $imagePath = '';
+        if (!empty($_FILES['edit_project_image']['name'])) {
+            $uploadDir = 'uploads/';
+            $imagePath = $uploadDir . basename($_FILES['edit_project_image']['name']);
+            move_uploaded_file($_FILES['edit_project_image']['tmp_name'], $imagePath);
+        }
+
+        $sql = "UPDATE projects SET title='$title', short_description='$short_desc', detailed_description='$detailed_desc', technologies='$technologies', github_link='$github', demo_link='$demo', category='$category'";
+        if ($imagePath) $sql .= ", image='$imagePath'";
+        $sql .= " WHERE id=$id";
+        $conn->query($sql);
+        header("Location: admin.php?success=project_updated#projects");
         exit;
     }
     // Delete Project
     if (isset($_POST['delete_project'])) {
         $id = intval($_POST['project_id']);
         $conn->query("DELETE FROM projects WHERE id=$id");
-        header("Location: admin.php");
+        header("Location: admin.php?success=project_deleted#projects");
         exit;
     }
     // Add Education
@@ -454,6 +511,91 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
             text-decoration: none;
             cursor: pointer;
         }
+
+        /* Improved Modal Styles */
+        .project-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .project-modal-content {
+            position: relative;
+            background: #fff;
+            margin: 0 auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        /* Form Grid Responsive */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 768px) {
+            .project-modal-content {
+                margin: 10px;
+                padding: 1.5rem;
+                width: calc(100% - 20px);
+                max-height: calc(100vh - 40px);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                width: 180px;
+            }
+
+            .main {
+                margin-left: 180px;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .project-modal-content {
+                margin: 5px;
+                padding: 1rem;
+                width: calc(100% - 10px);
+                max-height: calc(100vh - 20px);
+            }
+
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar a {
+                padding: 1rem 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .main {
+                margin-left: 60px;
+                padding: 0.5rem;
+            }
+        }
     </style>
     <script>
         // Sidebar navigation
@@ -538,6 +680,393 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
                     if (this.checked) {
                         editIconUrlField.style.display = 'none';
                         editIconUploadField.style.display = 'block';
+                    }
+                });
+            }
+        });
+
+        // Project Functions
+        function showAddProjectForm() {
+            document.getElementById('add-project-form').style.display = 'block';
+        }
+
+        function hideAddProjectForm() {
+            document.getElementById('add-project-form').style.display = 'none';
+        }
+
+        function viewProject(id) {
+            fetch('admin.php?action=get_project&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+
+                    const imageDisplay = data.image ?
+                        `<img src="${data.image}" style="width:100%; max-width:300px; height:auto; border-radius:8px; margin:0 auto; display:block;" alt="Project Image">` :
+                        '<div style="background:#f8f9fa; padding:1rem; text-align:center; border-radius:4px; color:#666;">No image uploaded</div>';
+
+                    document.getElementById('view-project-content').innerHTML = `
+                        <div style="display:grid; gap:1rem;">
+                            
+                            <!-- Project Image -->
+                            <div>
+                                <strong style="display:block; margin-bottom:0.5rem; color:#008080;">Project Image:</strong>
+                                ${imageDisplay}
+                            </div>
+                            
+                            <!-- Basic Info Grid -->
+                            <div class="form-grid">
+                               
+                                <div>
+                                    <strong style="color:#008080;">Category:</strong>
+                                    <p style="margin:0.25rem 0;">${data.category || 'N/A'}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Title -->
+                            <div>
+                                <strong style="color:#008080;">Project Title:</strong>
+                                <p style="margin:0.25rem 0; font-size:1.1rem; font-weight:600;">${data.title}</p>
+                            </div>
+                            
+                            <!-- Technologies -->
+                            <div>
+                                <strong style="color:#008080;">Technologies Used:</strong>
+                                <p style="margin:0.25rem 0;">${data.technologies || 'N/A'}</p>
+                            </div>
+                            
+                            <!-- Links Grid -->
+                            <div class="form-grid">
+                                <div>
+                                    <strong style="color:#008080;">GitHub Repository:</strong>
+                                    <p style="margin:0.25rem 0;">${data.github_link ? `<a href="${data.github_link}" target="_blank" style="color:#00D4AA;">View Repository</a>` : 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <strong style="color:#008080;">Demo Link:</strong>
+                                    <p style="margin:0.25rem 0;">${data.demo_link ? `<a href="${data.demo_link}" target="_blank" style="color:#00D4AA;">View Demo</a>` : 'N/A'}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Descriptions -->
+                            <div>
+                                <strong style="color:#008080;">Short Description:</strong>
+                                <p style="margin:0.25rem 0; background:#f8f9fa; padding:0.75rem; border-radius:4px; border-left:3px solid #00D4AA;">${data.short_description}</p>
+                            </div>
+                            
+                            <div>
+                                <strong style="color:#008080;">Detailed Description:</strong>
+                                <p style="margin:0.25rem 0; background:#f8f9fa; padding:0.75rem; border-radius:4px; border-left:3px solid #00D4AA; line-height:1.5;">${data.detailed_description}</p>
+                            </div>
+                            
+                        </div>
+                    `;
+
+                    document.getElementById('view-project-modal').style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading project details');
+                });
+        }
+
+        function editProject(id) {
+            fetch('admin.php?action=get_project&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    document.getElementById('edit_project_id').value = data.id;
+                    document.getElementById('edit_project_title').value = data.title;
+                    document.getElementById('edit_project_category').value = data.category || '';
+                    document.getElementById('edit_project_short_desc').value = data.short_description;
+                    document.getElementById('edit_project_detailed_desc').value = data.detailed_description;
+                    document.getElementById('edit_project_technologies').value = data.technologies || '';
+                    document.getElementById('edit_project_github').value = data.github_link || '';
+                    document.getElementById('edit_project_demo').value = data.demo_link || '';
+
+                    // Show current image
+                    const currentImageDisplay = data.image ? `<img src="${data.image}" style="width:100px; height:80px; border-radius:4px; object-fit:cover;" alt="Current Image">` : 'No image uploaded';
+                    document.getElementById('current_project_image').innerHTML = currentImageDisplay;
+
+                    document.getElementById('edit-project-modal').style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(error => alert('Error loading project data'));
+        }
+
+        function closeViewProjectModal() {
+            document.getElementById('view-project-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeEditProjectModal() {
+            document.getElementById('edit-project-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Skills Functions
+        function showAddSkillForm() {
+            document.getElementById('add-skill-form').style.display = 'block';
+        }
+
+        function hideAddSkillForm() {
+            document.getElementById('add-skill-form').style.display = 'none';
+        }
+
+        function viewSkill(id) {
+            fetch('admin.php?action=get_skill&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+
+                    let iconDisplay = '';
+                    if (data.icon) {
+                        iconDisplay = `<img src="${data.icon}" style="width:50px; height:50px; border-radius:4px;" alt="Skill Icon">`;
+                    } else {
+                        iconDisplay = '<i class="fa fa-code" style="font-size:30px; color:#008080;"></i>';
+                    }
+
+                    document.getElementById('view-skill-content').innerHTML = `
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">ID:</td><td style="border:1px solid #ddd; padding:8px;">${data.id}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Icon:</td><td style="border:1px solid #ddd; padding:8px;">${iconDisplay}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Skill Name:</td><td style="border:1px solid #ddd; padding:8px;">${data.name}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Level:</td><td style="border:1px solid #ddd; padding:8px;">${data.level || 'N/A'}%</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Category:</td><td style="border:1px solid #ddd; padding:8px;">${data.category || 'N/A'}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Description:</td><td style="border:1px solid #ddd; padding:8px;">${data.description || 'N/A'}</td></tr>
+                        </table>
+                    `;
+                    document.getElementById('view-skill-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading skill details'));
+        }
+
+        function editSkill(id) {
+            fetch('admin.php?action=get_skill&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    document.getElementById('edit_skill_id').value = data.id;
+                    document.getElementById('edit_skill_name').value = data.name;
+                    document.getElementById('edit_skill_level').value = data.level || '';
+                    document.getElementById('edit_skill_category').value = data.category || '';
+                    document.getElementById('edit_skill_description').value = data.description || '';
+
+                    // Populate icon URL field if it's a URL
+                    if (data.icon && (data.icon.startsWith('http') || data.icon.startsWith('https'))) {
+                        document.getElementById('edit_skill_icon_url').value = data.icon;
+                    }
+
+                    // Show current icon
+                    let currentIconDisplay = '';
+                    if (data.icon) {
+                        currentIconDisplay = `<img src="${data.icon}" style="width:50px; height:50px; border-radius:4px;" alt="Current Icon">`;
+                    } else {
+                        currentIconDisplay = '<i class="fa fa-code" style="font-size:30px; color:#008080;"></i> <span>No icon uploaded</span>';
+                    }
+                    document.getElementById('current_skill_icon').innerHTML = currentIconDisplay;
+
+                    document.getElementById('edit-skill-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading skill data'));
+        }
+
+        function closeViewSkillModal() {
+            document.getElementById('view-skill-modal').style.display = 'none';
+        }
+
+        function closeEditSkillModal() {
+            document.getElementById('edit-skill-modal').style.display = 'none';
+        }
+
+        // Education Functions
+        function showAddEducationForm() {
+            document.getElementById('add-education-form').style.display = 'block';
+        }
+
+        function hideAddEducationForm() {
+            document.getElementById('add-education-form').style.display = 'none';
+        }
+
+        function viewEducation(id) {
+            fetch('admin.php?action=get_education&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    document.getElementById('view-education-content').innerHTML = `
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">ID:</td><td style="border:1px solid #ddd; padding:8px;">${data.id}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Institution:</td><td style="border:1px solid #ddd; padding:8px;">${data.institute}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Degree:</td><td style="border:1px solid #ddd; padding:8px;">${data.degree}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Year:</td><td style="border:1px solid #ddd; padding:8px;">${data.year}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Description:</td><td style="border:1px solid #ddd; padding:8px;">${data.description || 'N/A'}</td></tr>
+                        </table>
+                    `;
+                    document.getElementById('view-education-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading education details'));
+        }
+
+        function editEducation(id) {
+            fetch('admin.php?action=get_education&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    document.getElementById('edit_edu_id').value = data.id;
+                    document.getElementById('edit_edu_institute').value = data.institute;
+                    document.getElementById('edit_edu_degree').value = data.degree;
+                    document.getElementById('edit_edu_year').value = data.year;
+                    document.getElementById('edit_edu_description').value = data.description || '';
+                    document.getElementById('edit-education-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading education data'));
+        }
+
+        function closeViewModal() {
+            document.getElementById('view-education-modal').style.display = 'none';
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-education-modal').style.display = 'none';
+        }
+
+        // Experience Functions
+        function showAddExperienceForm() {
+            document.getElementById('add-experience-form').style.display = 'block';
+        }
+
+        function hideAddExperienceForm() {
+            document.getElementById('add-experience-form').style.display = 'none';
+        }
+
+        function viewExperience(id) {
+            fetch('admin.php?action=get_experience&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    document.getElementById('view-experience-content').innerHTML = `
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">ID:</td><td style="border:1px solid #ddd; padding:8px;">${data.id}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Company:</td><td style="border:1px solid #ddd; padding:8px;">${data.company}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Role:</td><td style="border:1px solid #ddd; padding:8px;">${data.role}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Duration:</td><td style="border:1px solid #ddd; padding:8px;">${data.year}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Location:</td><td style="border:1px solid #ddd; padding:8px;">${data.location || 'N/A'}</td></tr>
+                            <tr><td style="border:1px solid #ddd; padding:8px; font-weight:bold;">Description:</td><td style="border:1px solid #ddd; padding:8px;">${data.description || 'N/A'}</td></tr>
+                        </table>
+                    `;
+                    document.getElementById('view-experience-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading experience details'));
+        }
+
+        function editExperience(id) {
+            fetch('admin.php?action=get_experience&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    document.getElementById('edit_exp_id').value = data.id;
+                    document.getElementById('edit_exp_company').value = data.company;
+                    document.getElementById('edit_exp_role').value = data.role;
+                    document.getElementById('edit_exp_year').value = data.year;
+                    document.getElementById('edit_exp_location').value = data.location || '';
+                    document.getElementById('edit_exp_description').value = data.description || '';
+                    document.getElementById('edit-experience-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading experience data'));
+        }
+
+        function closeViewExperienceModal() {
+            document.getElementById('view-experience-modal').style.display = 'none';
+        }
+
+        function closeEditExperienceModal() {
+            document.getElementById('edit-experience-modal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const viewModal = document.getElementById('view-project-modal');
+            const editModal = document.getElementById('edit-project-modal');
+
+            if (event.target === viewModal) {
+                closeViewProjectModal();
+            }
+            if (event.target === editModal) {
+                closeEditProjectModal();
+            }
+        });
+
+        // Simple Image Previews
+        document.addEventListener('DOMContentLoaded', function() {
+            // Edit Project Image Preview
+            const editProjectImageInput = document.querySelector('input[name="edit_project_image"]');
+            if (editProjectImageInput) {
+                editProjectImageInput.addEventListener('change', function(e) {
+                    const currentImageDiv = document.getElementById('current_project_image');
+
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            if (!editProjectImageInput.originalContent) {
+                                editProjectImageInput.originalContent = currentImageDiv.innerHTML;
+                            }
+
+                            currentImageDiv.innerHTML = `
+                                <div>
+                                    <strong>Current:</strong><br>
+                                    ${editProjectImageInput.originalContent || 'No current image'}
+                                </div>
+                                <div style="margin-top: 1rem;">
+                                    <strong>New:</strong><br>
+                                    <img src="${ev.target.result}" style="width:150px; height:auto; margin-top:5px;" alt="New Image">
+                                </div>
+                            `;
+                        }
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
+
+            // Add Project Image Preview
+            const addProjectImageInput = document.querySelector('input[name="project_image"]');
+            if (addProjectImageInput) {
+                addProjectImageInput.addEventListener('change', function(e) {
+                    const existingPreview = document.getElementById('simple-preview');
+                    if (existingPreview) existingPreview.remove();
+
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            const previewDiv = document.createElement('div');
+                            previewDiv.id = 'simple-preview';
+                            previewDiv.style.marginTop = '10px';
+                            previewDiv.innerHTML = `<strong>Preview:</strong><br><img src="${ev.target.result}" style="width:150px; height:auto; margin-top:5px;" alt="Preview">`;
+                            addProjectImageInput.parentNode.insertBefore(previewDiv, addProjectImageInput.nextSibling);
+                        }
+                        reader.readAsDataURL(e.target.files[0]);
                     }
                 });
             }
@@ -698,33 +1227,106 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
         </div>
         <!-- Projects Section -->
         <div class="section" id="projects" style="display:none;">
-            <h2>Projects</h2>
-            <form method="POST">
-                <label>Project Name:</label>
-                <input type="text" name="project_name" placeholder="Project name">
-                <label>Description:</label>
-                <textarea name="project_desc" rows="3"></textarea>
-                <button type="submit" name="add_project">Add Project</button>
-            </form>
-            <table class="table">
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                </tr>
-                <?php while ($row = $projects->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['description']); ?></td>
-                        <td class="actions">
-                            <form method="POST" style="display:inline;">
-                                <input type="hidden" name="project_id" value="<?php echo $row['id']; ?>">
-                                <button type="submit" name="delete_project">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </table>
+            <h2>Projects Management</h2>
+
+            <!-- Add Project Button -->
+            <button onclick="showAddProjectForm()" style="background:#008080; margin-bottom:1rem;">
+                <i class="fa fa-plus"></i> Add Project
+            </button>
+
+            <!-- Add Project Form (Hidden by default) -->
+            <div id="add-project-form" style="display:none; background:#f8f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+                <h3>Add New Project</h3>
+                <form method="POST" enctype="multipart/form-data">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <div>
+                            <label>Project Title:</label>
+                            <input type="text" name="project_title" placeholder="Project Name" required>
+                        </div>
+                        <div>
+                            <label>Category:</label>
+                            <input type="text" name="project_category" placeholder="e.g., Web Development, Mobile App">
+                        </div>
+                    </div>
+
+                    <label>Short Description:</label>
+                    <textarea name="project_short_desc" rows="2" placeholder="Brief description for project card" required></textarea>
+
+                    <label>Detailed Description:</label>
+                    <textarea name="project_detailed_desc" rows="4" placeholder="Detailed project description" required></textarea>
+
+                    <label>Technologies Used:</label>
+                    <input type="text" name="project_technologies" placeholder="e.g., HTML5, CSS3, JavaScript, PHP">
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <div>
+                            <label>GitHub Repository:</label>
+                            <input type="url" name="project_github" placeholder="https://github.com/username/repo">
+                        </div>
+                        <div>
+                            <label>Demo Link:</label>
+                            <input type="url" name="project_demo" placeholder="https://demo-site.com">
+                        </div>
+                    </div>
+
+                    <label>Project Image:</label>
+                    <input type="file" name="project_image" accept="image/*">
+
+                    <div style="margin-top:1rem;">
+                        <button type="submit" name="add_project">Save Project</button>
+                        <button type="button" onclick="hideAddProjectForm()" style="background:#6c757d;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Projects Table -->
+            <div style="background:#fff; border-radius:8px; overflow:hidden;">
+                <table class="table">
+                    <thead style="background:#f8f9fa;">
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Technologies</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $projects_result = $conn->query("SELECT * FROM projects ORDER BY id DESC");
+                        while ($row = $projects_result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $row['id']; ?></td>
+                                <td>
+                                    <?php if (!empty($row['image'])): ?>
+                                        <img src="<?php echo $row['image']; ?>" style="width:50px; height:40px; border-radius:4px; object-fit:cover;" alt="Project">
+                                    <?php else: ?>
+                                        <div style="width:50px; height:40px; background:#00D4AA; border-radius:4px; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">IMG</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($row['title']); ?></td>
+                                <td><?php echo htmlspecialchars($row['category'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars(substr($row['technologies'], 0, 30) . '...'); ?></td>
+                                <td class="actions">
+                                    <button onclick="viewProject(<?php echo $row['id']; ?>)" style="background:#17a2b8; padding:0.4rem 0.8rem; margin-right:0.3rem;">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button onclick="editProject(<?php echo $row['id']; ?>)" style="background:#ffc107; padding:0.4rem 0.8rem; margin-right:0.3rem;">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <form method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Delete this project?')">
+                                        <input type="hidden" name="project_id" value="<?php echo $row['id']; ?>">
+                                        <button type="submit" name="delete_project" style="background:#dc3545; padding:0.4rem 0.8rem;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <!-- Education Section -->
         <div class="section" id="education" style="display:none;">
@@ -1059,34 +1661,74 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
         </div>
     </div>
 
-    <!-- View Experience Modal -->
-    <div id="view-experience-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000;">
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:2rem; border-radius:8px; width:500px; max-width:90%;">
-            <h3>Experience Details</h3>
-            <div id="view-experience-content"></div>
-            <button onclick="closeViewExperienceModal()" style="background:#6c757d; margin-top:1rem;">Close</button>
+    <!-- View Project Modal -->
+    <div id="view-project-modal" class="project-modal-overlay">
+        <div class="project-modal-content">
+            <h3>Project Details</h3>
+            <div id="view-project-content"></div>
+            <div style="margin-top:1rem; text-align: right;">
+                <button onclick="closeViewProjectModal()" style="background:#6c757d;">Close</button>
+            </div>
         </div>
     </div>
 
-    <!-- Edit Experience Modal -->
-    <div id="edit-experience-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000;">
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:2rem; border-radius:8px; width:500px; max-width:90%;">
-            <h3>Edit Experience</h3>
-            <form method="POST" id="edit-experience-form">
-                <input type="hidden" name="edit_exp_id" id="edit_exp_id">
-                <label>Company Name:</label>
-                <input type="text" name="edit_exp_company" id="edit_exp_company" required>
-                <label>Job Title/Role:</label>
-                <input type="text" name="edit_exp_role" id="edit_exp_role" required>
-                <label>Duration:</label>
-                <input type="text" name="edit_exp_year" id="edit_exp_year" required>
-                <label>Location:</label>
-                <input type="text" name="edit_exp_location" id="edit_exp_location">
-                <label>Description:</label>
-                <textarea name="edit_exp_description" id="edit_exp_description" rows="3"></textarea>
-                <div style="margin-top:1rem;">
-                    <button type="submit" name="update_experience">Update Experience</button>
-                    <button type="button" onclick="closeEditExperienceModal()" style="background:#6c757d;">Cancel</button>
+    <!-- Edit Project Modal -->
+    <div id="edit-project-modal" class="project-modal-overlay">
+        <div class="project-modal-content">
+            <h3>Edit Project</h3>
+            <form method="POST" id="edit-project-form" enctype="multipart/form-data">
+                <input type="hidden" name="edit_project_id" id="edit_project_id">
+
+                <div class="form-grid">
+                    <div>
+                        <label>Project Title:</label>
+                        <input type="text" name="edit_project_title" id="edit_project_title" required>
+                    </div>
+                    <div>
+                        <label>Category:</label>
+                        <input type="text" name="edit_project_category" id="edit_project_category">
+                    </div>
+                </div>
+
+                <div class="form-full-width">
+                    <label>Short Description:</label>
+                    <textarea name="edit_project_short_desc" id="edit_project_short_desc" rows="2" required></textarea>
+                </div>
+
+                <div class="form-full-width">
+                    <label>Detailed Description:</label>
+                    <textarea name="edit_project_detailed_desc" id="edit_project_detailed_desc" rows="4" required></textarea>
+                </div>
+
+                <div class="form-full-width">
+                    <label>Technologies Used:</label>
+                    <input type="text" name="edit_project_technologies" id="edit_project_technologies">
+                </div>
+
+                <div class="form-grid">
+                    <div>
+                        <label>GitHub Repository:</label>
+                        <input type="url" name="edit_project_github" id="edit_project_github">
+                    </div>
+                    <div>
+                        <label>Demo Link:</label>
+                        <input type="url" name="edit_project_demo" id="edit_project_demo">
+                    </div>
+                </div>
+
+                <div class="form-full-width">
+
+                    <div id="current_project_image" style="margin-bottom:1rem;"></div>
+                </div>
+
+                <div class="form-full-width">
+                    <label>New Project Image:</label>
+                    <input type="file" name="edit_project_image" accept="image/*">
+                </div>
+
+                <div style="margin-top:1rem; text-align: right;">
+                    <button type="button" onclick="closeEditProjectModal()" style="background:#6c757d; margin-right: 1rem;">Cancel</button>
+                    <button type="submit" name="update_project">Update Project</button>
                 </div>
             </form>
         </div>
@@ -1124,10 +1766,16 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
                 showAlert('Skill updated successfully!');
             <?php elseif (isset($_GET['success']) && $_GET['success'] === 'skill_deleted'): ?>
                 showAlert('Skill deleted successfully!');
+            <?php elseif (isset($_GET['success']) && $_GET['success'] === 'project_added'): ?>
+                showAlert('Project added successfully!');
+            <?php elseif (isset($_GET['success']) && $_GET['success'] === 'project_updated'): ?>
+                showAlert('Project updated successfully!');
+            <?php elseif (isset($_GET['success']) && $_GET['success'] === 'project_deleted'): ?>
+                showAlert('Project deleted successfully!');
             <?php endif; ?>
         });
     </script>
 </body>
 
 </html>
-<?php $conn->close(); ?>
+<?php $conn->close();

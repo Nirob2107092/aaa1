@@ -27,6 +27,10 @@ $skills = $skills_query ? $skills_query->fetch_all(MYSQLI_ASSOC) : [];
 // Fetch Experience data
 $experience_query = $conn->query("SELECT * FROM experience ORDER BY id DESC");
 $experience = $experience_query ? $experience_query->fetch_all(MYSQLI_ASSOC) : [];
+
+// Fetch Projects data
+$projects_query = $conn->query("SELECT * FROM projects ORDER BY id DESC");
+$projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -178,27 +182,35 @@ $experience = $experience_query ? $experience_query->fetch_all(MYSQLI_ASSOC) : [
         <div class="container">
             <h2 class="section-title center">Projects</h2>
             <div class="portfolio-grid">
-                <div class="portfolio-item" data-category="popular latest">
-                    <div class="portfolio-placeholder">360 X 240</div>
-                </div>
-                <div class="portfolio-item" data-category="latest following">
-                    <div class="portfolio-placeholder">360 X 240</div>
-                </div>
-                <div class="portfolio-item" data-category="popular upcoming">
-                    <div class="portfolio-placeholder">360 X 240</div>
-                </div>
-                <div class="portfolio-item" data-category="following latest">
-                    <div class="portfolio-placeholder">360 X 240</div>
-                </div>
-                <div class="portfolio-item" data-category="upcoming popular">
-                    <div class="portfolio-placeholder">360 X 240</div>
-                </div>
-                <div class="portfolio-item" data-category="latest following">
-                    <div class="portfolio-placeholder">360 X 240</div>
-                </div>
+                <?php foreach ($projects as $project): ?>
+                    <div class="portfolio-item" onclick="openProjectModal(<?php echo $project['id']; ?>)">
+                        <div class="portfolio-image">
+                            <?php if (!empty($project['image'])): ?>
+                                <img src="<?php echo $project['image']; ?>" alt="<?php echo htmlspecialchars($project['title']); ?>" style="width:100%; height:240px; object-fit:cover;">
+                            <?php else: ?>
+                                <div class="portfolio-placeholder">
+                                    <i class="fa fa-image" style="font-size:2rem; margin-bottom:1rem;"></i>
+                                    Project Image
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="portfolio-content">
+                            <h3><?php echo htmlspecialchars($project['title']); ?></h3>
+                            <p><?php echo htmlspecialchars(substr($project['short_description'], 0, 100)); ?></p>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
+
+    <!-- Project Modal -->
+    <div id="project-modal" class="project-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeProjectModal()">&times;</span>
+            <div id="modal-project-content"></div>
+        </div>
+    </div>
 
     <!-- Work Experience Section -->
     <section class="experience">
