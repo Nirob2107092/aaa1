@@ -91,12 +91,22 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
                     <img src="images/a.jpg" alt="Default Hero Image" class="hero-img">
                 <?php endif; ?>
             </div>
-        </div>
-        <div class="social-links">
-            <a href="https://www.facebook.com/rysul.nirob.7/" class="social-link facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://x.com/rysul_n" class="social-link twitter" target="_blank"><i class="fab fa-twitter"></i></a>
-            <a href="https://www.instagram.com/being_nirob/?next=%2F" class="social-link instagram" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.linkedin.com/in/rysul-aman-nirob-6a3323370/" class="social-link linkedin" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+
+            <!-- Social Links moved inside -->
+            <div class="social-links">
+                <a href="https://www.facebook.com/rysul.nirob.7/" class="social-link facebook" target="_blank">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://x.com/rysul_n" class="social-link twitter" target="_blank">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://www.instagram.com/being_nirob/?next=%2F" class="social-link instagram" target="_blank">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/rysul-aman-nirob-6a3323370/" class="social-link linkedin" target="_blank">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+            </div>
         </div>
     </section>
 

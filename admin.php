@@ -551,49 +551,148 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
             grid-column: 1 / -1;
         }
 
-        /* Responsive breakpoints */
+        /* Mobile Responsive for Admin Panel */
         @media (max-width: 768px) {
-            .project-modal-content {
-                margin: 10px;
-                padding: 1.5rem;
-                width: calc(100% - 20px);
-                max-height: calc(100vh - 40px);
+            .admin-container {
+                padding: 0.5rem;
+            }
+
+            .admin-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .admin-form {
+                padding: 1rem;
+                margin: 0.5rem 0;
             }
 
             .form-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
 
-            .sidebar {
-                width: 180px;
+            .projects-table {
+                font-size: 0.8rem;
             }
 
-            .main {
-                margin-left: 180px;
+            .projects-table th,
+            .projects-table td {
+                padding: 0.5rem 0.3rem;
+            }
+
+            .projects-table .btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+                margin: 0.2rem;
+            }
+
+            /* Hide some columns on mobile */
+            .projects-table .hide-mobile {
+                display: none;
+            }
+
+            /* Stack action buttons vertically on mobile */
+            .projects-table .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            /* Modal responsive */
+            .project-modal-content {
+                width: 95%;
+                margin: 1rem auto;
+                max-height: 90vh;
                 padding: 1rem;
+            }
+
+            .project-modal-content h3 {
+                font-size: 1.2rem;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .modal-buttons button {
+                width: 100%;
+            }
+
+            /* Form elements mobile */
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 16px;
+                /* Prevents zoom on iOS */
+            }
+
+            /* Image preview mobile */
+            .image-preview img {
+                max-width: 150px;
+                height: auto;
             }
         }
 
         @media (max-width: 480px) {
+            .admin-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .admin-form {
+                padding: 0.8rem;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+            }
+
+            .projects-table {
+                font-size: 0.75rem;
+            }
+
+            .projects-table .btn {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+            }
+
             .project-modal-content {
-                margin: 5px;
-                padding: 1rem;
-                width: calc(100% - 10px);
-                max-height: calc(100vh - 20px);
+                width: 98%;
+                margin: 0.5rem auto;
+                padding: 0.8rem;
+            }
+        }
+
+        /* Horizontal scroll for table on small screens */
+        @media (max-width: 600px) {
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
-            .sidebar {
-                width: 60px;
+            .projects-table {
+                min-width: 600px;
+            }
+        }
+
+        /* Mobile Responsive for Projects section */
+        @media (max-width: 768px) {
+            .projects-table .actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.3rem;
             }
 
-            .sidebar a {
-                padding: 1rem 0.5rem;
-                font-size: 0.9rem;
+            .projects-table .actions button,
+            .projects-table .actions form {
+                width: 100%;
+                margin: 0;
             }
 
-            .main {
-                margin-left: 60px;
-                padding: 0.5rem;
+            .projects-table .actions button {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -1071,6 +1170,25 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
                 });
             }
         });
+
+        // Add this function to your existing JavaScript
+        function deleteProject(id) {
+            if (confirm('Are you sure you want to delete this project?')) {
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `<input type="hidden" name="project_id" value="${id}">`;
+
+                const deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete_project';
+                deleteInput.value = '1';
+                form.appendChild(deleteInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
     </script>
 </head>
 
@@ -1206,15 +1324,15 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
                                 <td><?php echo htmlspecialchars($row['level'] ?? 'N/A'); ?>%</td>
                                 <td><?php echo htmlspecialchars($row['category'] ?? 'N/A'); ?></td>
                                 <td class="actions">
-                                    <button onclick="viewSkill(<?php echo $row['id']; ?>)" style="background:#17a2b8; padding:0.4rem 0.8rem; margin-right:0.3rem;">
+                                    <button onclick="viewSkill(<?php echo $row['id']; ?>)" style="background:#17a2b8; color:white; border:none; padding:0.4rem 0.8rem; margin-right:0.3rem; border-radius:4px; cursor:pointer;">
                                         <i class="fa fa-eye"></i>
                                     </button>
-                                    <button onclick="editSkill(<?php echo $row['id']; ?>)" style="background:#ffc107; padding:0.4rem 0.8rem; margin-right:0.3rem;">
+                                    <button onclick="editSkill(<?php echo $row['id']; ?>)" style="background:#ffc107; color:black; border:none; padding:0.4rem 0.8rem; margin-right:0.3rem; border-radius:4px; cursor:pointer;">
                                         <i class="fa fa-edit"></i>
                                     </button>
                                     <form method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Delete this skill?')">
                                         <input type="hidden" name="skill_id" value="<?php echo $row['id']; ?>">
-                                        <button type="submit" name="delete_skill" style="background:#dc3545; padding:0.4rem 0.8rem;">
+                                        <button type="submit" name="delete_skill" style="background:#dc3545; color:white; border:none; padding:0.4rem 0.8rem; border-radius:4px; cursor:pointer;">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </form>
@@ -1235,7 +1353,7 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
             </button>
 
             <!-- Add Project Form (Hidden by default) -->
-            <div id="add-project-form" style="display:none; background:#f8f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+            <div id="add-project-form" style="display:none; background:#f9f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
                 <h3>Add New Project</h3>
                 <form method="POST" enctype="multipart/form-data">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
@@ -1281,49 +1399,47 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
 
             <!-- Projects Table -->
             <div style="background:#fff; border-radius:8px; overflow:hidden;">
-                <table class="table">
-                    <thead style="background:#f8f9fa;">
+                <table class="projects-table">
+                    <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Image</th>
                             <th>Title</th>
-                            <th>Category</th>
-                            <th>Technologies</th>
+                            <th class="hide-mobile">Category</th>
+                            <th class="hide-mobile">Technologies</th>
+                            <th>Image</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                        $projects_result = $conn->query("SELECT * FROM projects ORDER BY id DESC");
-                        while ($row = $projects_result->fetch_assoc()): ?>
+                        <?php foreach ($projects as $project): ?>
                             <tr>
-                                <td><?php echo $row['id']; ?></td>
+                                <td><?php echo $project['id']; ?></td>
+                                <td><?php echo htmlspecialchars($project['title']); ?></td>
+                                <td class="hide-mobile"><?php echo htmlspecialchars($project['category']); ?></td>
+                                <td class="hide-mobile"><?php echo htmlspecialchars($project['technologies']); ?></td>
                                 <td>
-                                    <?php if (!empty($row['image'])): ?>
-                                        <img src="<?php echo $row['image']; ?>" style="width:50px; height:40px; border-radius:4px; object-fit:cover;" alt="Project">
+                                    <?php if ($project['image']): ?>
+                                        <img src="<?php echo $project['image']; ?>" style="width:40px;height:30px;object-fit:cover;border-radius:4px;" alt="Project">
                                     <?php else: ?>
-                                        <div style="width:50px; height:40px; background:#00D4AA; border-radius:4px; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">IMG</div>
+                                        No Image
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($row['title']); ?></td>
-                                <td><?php echo htmlspecialchars($row['category'] ?? 'N/A'); ?></td>
-                                <td><?php echo htmlspecialchars(substr($row['technologies'], 0, 30) . '...'); ?></td>
                                 <td class="actions">
-                                    <button onclick="viewProject(<?php echo $row['id']; ?>)" style="background:#17a2b8; padding:0.4rem 0.8rem; margin-right:0.3rem;">
+                                    <button onclick="viewProject(<?php echo $project['id']; ?>)" style="background:#17a2b8; color:white; border:none; padding:0.4rem 0.8rem; margin-right:0.3rem; border-radius:4px; cursor:pointer;">
                                         <i class="fa fa-eye"></i>
                                     </button>
-                                    <button onclick="editProject(<?php echo $row['id']; ?>)" style="background:#ffc107; padding:0.4rem 0.8rem; margin-right:0.3rem;">
+                                    <button onclick="editProject(<?php echo $project['id']; ?>)" style="background:#ffc107; color:black; border:none; padding:0.4rem 0.8rem; margin-right:0.3rem; border-radius:4px; cursor:pointer;">
                                         <i class="fa fa-edit"></i>
                                     </button>
                                     <form method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Delete this project?')">
-                                        <input type="hidden" name="project_id" value="<?php echo $row['id']; ?>">
-                                        <button type="submit" name="delete_project" style="background:#dc3545; padding:0.4rem 0.8rem;">
+                                        <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                        <button type="submit" name="delete_project" style="background:#dc3545; color:white; border:none; padding:0.4rem 0.8rem; border-radius:4px; cursor:pointer;">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </form>
                                 </td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -1338,7 +1454,7 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
             </button>
 
             <!-- Add Education Form (Hidden by default) -->
-            <div id="add-education-form" style="display:none; background:#f8f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+            <div id="add-education-form" style="display:none; background:#f9f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
                 <h3>Add New Education</h3>
                 <form method="POST">
                     <label>Institution:</label>
@@ -1405,7 +1521,7 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
             </button>
 
             <!-- Add Experience Form (Hidden by default) -->
-            <div id="add-experience-form" style="display:none; background:#f8f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+            <div id="add-experience-form" style="display:none; background:#f9f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
                 <h3>Add New Work Experience</h3>
                 <form method="POST">
                     <label>Company Name:</label>
