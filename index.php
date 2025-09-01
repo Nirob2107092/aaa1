@@ -54,7 +54,7 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
             <ul class="nav-menu">
                 <li><a href="#home" class="nav-link">HOME</a></li>
                 <li><a href="#about" class="nav-link">ABOUT</a></li>
-                <li><a href="#services" class="nav-link">SKILLS</a></li>
+                <li><a href="#skills" class="nav-link">SKILLS</a></li>
                 <li><a href="#portfolio" class="nav-link">PROJECTS</a></li>
                 <li><a href="#contact" class="nav-link">CONTACT</a></li>
                 <li><a href="/aaa/login.php" class="nav-link">ADMIN</a></li>
@@ -153,7 +153,7 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
     </section>
 
     <!-- Skills Section -->
-    <section class="services">
+    <section id="skills" class="services">
         <div class="container">
             <h2 class="section-title center">SKILLS</h2>
             <p class="section-subtitle">My technical expertise and professional skills</p>
