@@ -82,7 +82,7 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
                 <p class="hero-description">
                     <?php echo htmlspecialchars($home['hero_description']); ?>
                 </p>
-                <button class="cta-button">Hire Me!</button>
+                <button class="cta-button" onclick="scrollToContact()">Hire Me!</button>
             </div>
             <div class="hero-image">
                 <?php if (!empty($home['hero_image'])): ?>
