@@ -83,6 +83,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_project' && isset($_GET['
         exit;
     }
 }
+// Handle AJAX requests for contact data
+if (isset($_GET['action']) && $_GET['action'] === 'get_contact' && isset($_GET['id'])) {
+    $id = intval($_GET['id']);
+    $result = $conn->query("SELECT * FROM contacts WHERE id=$id");
+    if ($result && $row = $result->fetch_assoc()) {
+        header('Content-Type: application/json');
+        echo json_encode($row);
+        exit;
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Contact not found']);
+        exit;
+    }
+}
 
 $home_updated = isset($_GET['success']) && $_GET['success'] === 'home';
 $about_updated = isset($_GET['success']) && $_GET['success'] === 'about';
@@ -793,6 +807,7 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
             document.getElementById('add-project-form').style.display = 'none';
         }
 
+
         function viewProject(id) {
             fetch('admin.php?action=get_project&id=' + id)
                 .then(response => response.json())
@@ -1188,6 +1203,60 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
                 document.body.appendChild(form);
                 form.submit();
             }
+        }
+
+        // Contact Functions
+        function viewContact(id) {
+            fetch('admin.php?action=get_contact&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+
+                    document.getElementById('view-contact-content').innerHTML = `
+                        <div style="display:grid; gap:1rem;">
+                            <!-- Contact Info Grid -->
+                            <div class="form-grid">
+                                <div>
+                                    <strong style="color:#008080;">Name:</strong>
+                                    <p style="margin:0.25rem 0; font-weight:600;">${data.name}</p>
+                                </div>
+                                <div>
+                                    <strong style="color:#008080;">Email:</strong>
+                                    <p style="margin:0.25rem 0;"><a href="mailto:${data.email}" style="color:#00D4AA;">${data.email}</a></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Subject -->
+                            <div>
+                                <strong style="color:#008080;">Subject:</strong>
+                                <p style="margin:0.25rem 0; font-size:1.1rem; font-weight:600;">${data.subject}</p>
+                            </div>
+                            
+                            <!-- Message -->
+                            <div>
+                                <strong style="color:#008080;">Message:</strong>
+                                <div style="margin:0.5rem 0; background:#f8f9fa; padding:1rem; border-radius:4px; border-left:3px solid #00D4AA; line-height:1.6; white-space:pre-wrap;">${data.message}</div>
+                            </div>
+                            
+                            <!-- Timestamp if available -->
+                            ${data.created_at ? `
+                            <div>
+                                <strong style="color:#008080;">Received:</strong>
+                                <p style="margin:0.25rem 0; color:#666;">${new Date(data.created_at).toLocaleString()}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    document.getElementById('view-contact-modal').style.display = 'block';
+                })
+                .catch(error => alert('Error loading contact details'));
+        }
+
+        function closeViewContactModal() {
+            document.getElementById('view-contact-modal').style.display = 'none';
         }
     </script>
 </head>
@@ -1585,29 +1654,42 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
         <!-- Contact Section -->
         <div class="section" id="contact" style="display:none;">
             <h2>Contact Messages</h2>
-            <table class="table">
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Subject</th>
-                    <th>Message</th>
-                    <th>Actions</th>
-                </tr>
-                <?php while ($row = $contacts->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                        <td><?php echo htmlspecialchars($row['subject']); ?></td>
-                        <td><?php echo htmlspecialchars($row['message']); ?></td>
-                        <td class="actions">
-                            <form method="POST" style="display:inline;">
-                                <input type="hidden" name="contact_id" value="<?php echo $row['id']; ?>">
-                                <button type="submit" name="delete_contact">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </table>
+            <div style="background:#fff; border-radius:8px; overflow:hidden;">
+                <table class="table">
+                    <thead style="background:#f8f9fa;">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Subject</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $contacts_result = $conn->query("SELECT * FROM contacts ORDER BY id DESC");
+                        while ($row = $contacts_result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $row['id']; ?></td>
+                                <td><?php echo htmlspecialchars($row['name']); ?></td>
+                                <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                <td><?php echo htmlspecialchars(substr($row['subject'], 0, 30)); ?>...</td>
+                                <td class="actions">
+                                    <button onclick="viewContact(<?php echo $row['id']; ?>)" style="background:#17a2b8; color:white; border:none; padding:0.4rem 0.8rem; margin-right:0.3rem; border-radius:4px; cursor:pointer;">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <form method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Delete this message?')">
+                                        <input type="hidden" name="contact_id" value="<?php echo $row['id']; ?>">
+                                        <button type="submit" name="delete_contact" style="background:#dc3545; color:white; border:none; padding:0.4rem 0.8rem; border-radius:4px; cursor:pointer;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <!-- Home Section -->
         <div class="section" id="home" style="display:none;">
@@ -1847,6 +1929,34 @@ $home = $home_query ? $home_query->fetch_assoc() : null;
                     <button type="submit" name="update_project">Update Project</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- View Contact Modal -->
+    <div id="view-contact-modal" style="
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,0.5);
+        z-index:10000;
+    ">
+        <div style="
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            background:#fff;
+            padding:2rem;
+            border-radius:8px;
+            width:500px;
+            max-width:90%;
+        ">
+            <h3>Contact Message Details</h3>
+            <div id="view-contact-content"></div>
+            <button onclick="closeViewContactModal()" style="background:#6c757d; margin-top:1rem;">Close</button>
         </div>
     </div>
 

@@ -6,92 +6,28 @@ const portfolioFilters = document.querySelectorAll('.filter-btn');
 const portfolioItems = document.querySelectorAll('.portfolio-item');
 const contactForm = document.getElementById('contactForm');
 
-// Scroll to Contact Section
-function scrollToContact() {
-    const contactSection = document.getElementById('contact');
-    if (contactSection) {
-        contactSection.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    }
-}
-
-// Enhanced Typewriter Effect for Hero Subtitle
-document.addEventListener('DOMContentLoaded', function() {
-    const subtitle = document.querySelector('.hero-subtitle');
-    if (!subtitle) return;
-
-    // Get the original text from PHP/HTML
-    const originalText = subtitle.textContent.trim();
-    if (!originalText) return;
-
-    // Typewriter settings
-    const typeSpeed = 100;      // Speed of typing (ms per character)
-    const deleteSpeed = 50;     // Speed of deleting (ms per character)
-    const pauseTime = 2000;     // Pause when text is complete (ms)
-    const startDelay = 1000;    // Initial delay before starting (ms)
-
-    let charIndex = 0;
-    let isDeleting = false;
-    let isPaused = false;
-
-    function typeWriter() {
-        if (isPaused) {
-            setTimeout(typeWriter, pauseTime);
-            isPaused = false;
-            return;
-        }
-
-        if (isDeleting) {
-            // Deleting characters
-            subtitle.textContent = originalText.substring(0, charIndex - 1);
-            charIndex--;
-            
-            if (charIndex === 0) {
-                isDeleting = false;
-                setTimeout(typeWriter, 500); // Brief pause before typing again
-            } else {
-                setTimeout(typeWriter, deleteSpeed);
-            }
-        } else {
-            // Typing characters
-            subtitle.textContent = originalText.substring(0, charIndex + 1);
-            charIndex++;
-            
-            if (charIndex === originalText.length) {
-                isDeleting = true;
-                isPaused = true; // Pause when complete
-                setTimeout(typeWriter, pauseTime);
-            } else {
-                setTimeout(typeWriter, typeSpeed);
-            }
-        }
-    }
-
-    // Clear initial text and start animation after delay
-    subtitle.textContent = '';
-    setTimeout(typeWriter, startDelay);
-});
-
 // Mobile Navigation Toggle
 document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
+    const navLinks = document.querySelectorAll('.nav-link');
 
+    // Toggle mobile menu
     if (hamburger && navMenu) {
         hamburger.addEventListener('click', function() {
             hamburger.classList.toggle('active');
             navMenu.classList.toggle('active');
         });
 
-        document.querySelectorAll('.nav-link').forEach(link => {
+        // Close mobile menu when clicking on a link
+        navLinks.forEach(link => {
             link.addEventListener('click', function() {
                 hamburger.classList.remove('active');
                 navMenu.classList.remove('active');
             });
         });
 
+        // Close mobile menu when clicking outside
         document.addEventListener('click', function(e) {
             if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
                 hamburger.classList.remove('active');
@@ -99,33 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
-
-// Smooth scrolling for all navigation links
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href').substring(1);
-            const targetSection = document.getElementById(targetId);
-            
-            if (targetSection) {
-                targetSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-            
-            // Close mobile menu if open
-            const navMenu = document.querySelector('.nav-menu');
-            const hamburger = document.querySelector('.hamburger');
-            if (navMenu && hamburger) {
-                navMenu.classList.remove('active');
-                hamburger.classList.remove('active');
-            }
-        });
-    });
 });
 
 // ✅ Smooth scrolling for section links only
