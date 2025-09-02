@@ -1764,3 +1764,246 @@ html {
         font-size: 1rem !important;
     }
 }
+
+/* ============== DARK THEME ONLY - NO LIGHT THEME CHANGES ============== */
+
+/* Dark Theme Only - Applied when body has 'dark-theme' class */
+body.dark-theme {
+    background: #1a1a2e;
+    color: #ffffff;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+body.dark-theme .navbar {
+    background: rgba(26, 26, 46, 0.95);
+    border-bottom: 1px solid #333;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+body.dark-theme .nav-link {
+    color: #000000 !important;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .nav-link:hover {
+    color: #00D4AA !important;
+}
+
+body.dark-theme .logo-text {
+    color: #00D4AA;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    transition: background 0.4s ease;
+}
+
+body.dark-theme .hero-title,
+body.dark-theme .hero-name,
+body.dark-theme .hero-subtitle,
+body.dark-theme .hero-description {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .about,
+body.dark-theme .education,
+body.dark-theme .services,
+body.dark-theme .portfolio,
+body.dark-theme .experience,
+body.dark-theme .contact {
+    background: #1a1a2e;
+    transition: background-color 0.4s ease;
+}
+
+body.dark-theme .section-title {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .section-subtitle {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .about-description {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .service-card,
+body.dark-theme .portfolio-item,
+body.dark-theme .experience-card,
+body.dark-theme .education-card {
+    background: #2d2d4a;
+    border: 1px solid #333;
+    color: #ffffff;
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+}
+
+body.dark-theme .service-card h3,
+body.dark-theme .portfolio-item h3,
+body.dark-theme .experience-card h3,
+body.dark-theme .education-card h3 {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .service-card p,
+body.dark-theme .portfolio-item p,
+body.dark-theme .experience-card p,
+body.dark-theme .education-card p {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .portfolio-title {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .portfolio-description {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .education-degree {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .education-institute {
+    color: #00D4AA;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .education-description {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .experience-card h3 {
+    color: #00D4AA;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .experience-period,
+body.dark-theme .experience-company,
+body.dark-theme .experience-location,
+body.dark-theme .experience-description {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .contact-form {
+    background: #2d2d4a;
+    border: 1px solid #333;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+body.dark-theme .contact-form h3,
+body.dark-theme .contact-form p {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .contact-form input,
+body.dark-theme .contact-form textarea {
+    background: #1a1a2e;
+    border: 1px solid #555;
+    color: #ffffff;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-theme .contact-form input::placeholder,
+body.dark-theme .contact-form textarea::placeholder {
+    color: #cccccc;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .contact-form input:focus,
+body.dark-theme .contact-form textarea:focus {
+    border-color: #00D4AA;
+    background: #252538;
+    box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+}
+
+body.dark-theme .contact-item {
+    color: #ffffff;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .contact-item i {
+    color: #00D4AA;
+    transition: color 0.4s ease;
+}
+
+body.dark-theme .footer {
+    background: #16213e;
+    border-top: 1px solid #333;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+body.dark-theme .footer-text,
+body.dark-theme .user-activity {
+    color: #ffffff !important;
+    transition: color 0.4s ease;
+}
+
+/* Theme toggle hover effect */
+#theme-toggle:hover {
+    background: #00D4AA !important;
+    color: white !important;
+    transform: scale(1.1);
+}
+
+/* Project Modal Dark Theme */
+body.dark-theme #project-modal > div {
+    background: #2d2d4a !important;
+    color: #ffffff !important;
+    border: 1px solid #333;
+}
+
+body.dark-theme #modal-project-title {
+    color: #ffffff !important;
+}
+
+body.dark-theme #modal-project-description {
+    color: #ffffff !important;
+}
+
+body.dark-theme #modal-project-category,
+body.dark-theme #modal-project-technologies {
+    color: #ffffff !important;
+}
+
+/* Social Links Dark Theme */
+body.dark-theme .social-link {
+    background: #2d2d4a;
+    border: 1px solid #333;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-theme .social-link:hover {
+    background: #00D4AA;
+    border-color: #00D4AA;
+}
+
+/* Percentage text for skills */
+body.dark-theme .percentage-text {
+    color: #ffffff;
+}
+
+/* Mobile responsive theme toggle */
+@media (max-width: 768px) {
+    #theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 60px;
+        z-index: 1001;
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+}

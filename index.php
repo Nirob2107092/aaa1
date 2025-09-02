@@ -1,4 +1,28 @@
 <?php
+// Handle theme cookie setting
+if (isset($_POST['set_theme'])) {
+    $theme = $_POST['set_theme'] === 'dark' ? 'dark' : 'light';
+    setcookie('portfolio_theme', $theme, time() + (365 * 24 * 60 * 60), '/');
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
+}
+
+// Cookie-based user tracking
+$currentTheme = isset($_COOKIE['portfolio_theme']) ? $_COOKIE['portfolio_theme'] : 'light';
+$darkThemeClass = ($currentTheme === 'dark') ? 'dark-theme' : '';
+
+// Track visitor analytics using $_COOKIE
+$visits = isset($_COOKIE['visits']) ? (int)$_COOKIE['visits'] + 1 : 1;
+setcookie('visits', $visits, time() + (365 * 24 * 60 * 60), '/');
+
+$firstVisit = isset($_COOKIE['first_visit']) ? $_COOKIE['first_visit'] : date('M Y');
+if (!isset($_COOKIE['first_visit'])) {
+    setcookie('first_visit', $firstVisit, time() + (365 * 24 * 60 * 60), '/');
+}
+
+setcookie('last_visit', date('M d, Y'), time() + (365 * 24 * 60 * 60), '/');
+
+// Database connection and your existing code...
 $host = "localhost:4308";
 $user = "root";
 $pass = "";
@@ -44,7 +68,7 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
 
 </head>
 
-<body>
+<body class="<?php echo $darkThemeClass; ?>">
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
@@ -58,6 +82,27 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
                 <li><a href="#portfolio" class="nav-link">PROJECTS</a></li>
                 <li><a href="#contact" class="nav-link">CONTACT</a></li>
                 <li><a href="/aaa/login.php" class="nav-link">ADMIN</a></li>
+                <li>
+                    <button id="theme-toggle" onclick="toggleTheme()" style="
+                        background: transparent; 
+                        border: 2px solid #00D4AA; 
+                        color: #00D4AA; 
+                        padding: 0.5rem; 
+                        border-radius: 50%; 
+                        cursor: pointer; 
+                        font-size: 1rem; 
+                        width: 40px; 
+                        height: 40px; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        margin-left: 1rem;
+                        transition: all 0.3s ease;
+                    ">
+                        <i class="fas fa-<?php echo $currentTheme === 'dark' ? 'sun' : 'moon'; ?>" id="theme-icon"></i>
+                    </button>
+                </li>
+
 
             </ul>
             <div class="hamburger">
@@ -457,6 +502,20 @@ $projects = $projects_query ? $projects_query->fetch_all(MYSQLI_ASSOC) : [];
                     <span class="logo-text">Nirob</span>
                 </div>
                 <p class="footer-text">Copyrights © 2025 All rights reserved.</p>
+
+                <!-- User Activity Display using $_COOKIE -->
+                <div class="user-activity" style="
+                    font-size: 0.8rem; 
+                    color: <?php echo $currentTheme === 'dark' ? '#ffffff' : '#666'; ?>; 
+                    margin-top: 0.5rem;
+                    font-weight: 500;
+                    text-align: center;
+                ">
+                    Visit #<?php echo $visits; ?> •
+                    Member since <?php echo $firstVisit; ?> •
+                    Theme: <?php echo ucfirst($currentTheme); ?>
+                </div>
+
                 <div class="footer-social">
                     <a href="https://www.facebook.com/rysul.nirob.7/" class="social-link"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://x.com/rysul_n" class="social-link"><i class="fab fa-twitter"></i></a>

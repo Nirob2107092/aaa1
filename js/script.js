@@ -522,3 +522,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Dark Theme Toggle with $_COOKIE
+function toggleTheme() {
+    const body = document.body;
+    const themeIcon = document.getElementById('theme-icon');
+    const isDark = body.classList.contains('dark-theme');
+    
+    // Add rotation animation
+    themeIcon.style.transform = 'rotate(180deg)';
+    
+    setTimeout(() => {
+        if (isDark) {
+            // Switch to light theme
+            body.classList.remove('dark-theme');
+            themeIcon.className = 'fas fa-moon';
+            setThemeCookie('light');
+        } else {
+            // Switch to dark theme
+            body.classList.add('dark-theme');
+            themeIcon.className = 'fas fa-sun';
+            setThemeCookie('dark');
+        }
+        
+        // Reset icon rotation
+        setTimeout(() => {
+            themeIcon.style.transform = 'rotate(0deg)';
+        }, 100);
+    }, 150);
+}
+
+function setThemeCookie(theme) {
+    // Create hidden form to set cookie via PHP
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.style.display = 'none';
+    
+    const themeInput = document.createElement('input');
+    themeInput.type = 'hidden';
+    themeInput.name = 'set_theme';
+    themeInput.value = theme;
+    
+    form.appendChild(themeInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Fix the scrollToContact function (if it doesn't exist)
+function scrollToContact() {
+    document.getElementById('contact').scrollIntoView({
+        behavior: 'smooth'
+    });
+}
+
+// Smooth transitions on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.transition = 'background-color 0.4s ease, color 0.4s ease';
+});
