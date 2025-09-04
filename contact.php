@@ -3,7 +3,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require __DIR__ . '/vendor/autoload.php'; // Make sure PHPMailer is installed via Composer
+require __DIR__ . '/vendor/autoload.php';
 
 // Database credentials
 $host = "localhost:4308";
@@ -30,14 +30,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $subject = $conn->real_escape_string($_POST['subject']);
     $message = $conn->real_escape_string($_POST['message']);
 
-    // 1️⃣ Insert into database
+    // Insert into database
     $sql = "INSERT INTO contacts (name, email, subject, message) VALUES ('$name', '$email', '$subject', '$message')";
     if ($conn->query($sql) !== TRUE) {
         echo "Database error: " . $conn->error;
         exit;
     }
 
-    // 2️⃣ Send email using PHPMailer
+    // Send email using PHPMailer
     $mail = new PHPMailer(true);
     try {
         // Server settings
@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Recipients
         $mail->setFrom($gmail_username, 'Portfolio Website');
-        $mail->addAddress($gmail_username); // Send to yourself
+        $mail->addAddress($gmail_username);
         $mail->addReplyTo($email, $name);
 
         // Email content
@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ";
 
         $mail->send();
-        echo "Message sent successfully and stored in database!";
+        echo "Thank you for contacting me.I'll get back to you soon!";
     } catch (Exception $e) {
         echo "Message stored but mail not sent. Mailer Error: {$mail->ErrorInfo}";
     }

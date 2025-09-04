@@ -1765,7 +1765,6 @@ html {
     }
 }
 
-/* ============== DARK THEME ONLY - NO LIGHT THEME CHANGES ============== */
 
 /* Dark Theme Only - Applied when body has 'dark-theme' class */
 body.dark-theme {
